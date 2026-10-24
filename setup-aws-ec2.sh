@@ -31,10 +31,17 @@ echo " Levantando Cluster RabbitMQ de 2 Nodos con Docker Compose"
 echo "=========================================================="
 sudo docker-compose up -d || sudo docker compose up -d
 
-echo "Esperando 15 segundos a que los 2 nodos de RabbitMQ formen el cluster..."
-sleep 15
-sudo docker exec rabbit-node-1 rabbitmqctl cluster_status || true
+echo "Esperando a que rabbit-node-2 inicie para unirlo al cluster..."
+until sudo docker exec rabbit-node-2 rabbitmq-diagnostics -q ping >/dev/null 2>&1; do
+    sleep 2
+done
+
+sudo docker exec rabbit-node-2 rabbitmqctl stop_app
+sudo docker exec rabbit-node-2 rabbitmqctl reset
+sudo docker exec rabbit-node-2 rabbitmqctl join_cluster rabbit@rabbit-node-1
+sudo docker exec rabbit-node-2 rabbitmqctl start_app
+sudo docker exec rabbit-node-1 rabbitmqctl cluster_status
 
 echo "=========================================================="
-echo " Listo! El cluster RabbitMQ esta corriendo en el puerto 15672"
+echo " Listo! El cluster de 2 nodos RabbitMQ esta activo en 15672"
 echo "=========================================================="

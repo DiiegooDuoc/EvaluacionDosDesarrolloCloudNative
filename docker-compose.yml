@@ -36,18 +36,6 @@ services:
       RABBITMQ_DEFAULT_USER: "guest"
       RABBITMQ_DEFAULT_PASS: "guest"
       RABBITMQ_NODENAME: "rabbit@rabbit-node-2"
-    command: >
-      bash -c "
-        /usr/local/bin/docker-entrypoint.sh rabbitmq-server -detached &&
-        until rabbitmqctl node_health_check >/dev/null 2>&1; do sleep 2; done &&
-        until rabbitmqctl -n rabbit@rabbit-node-1 node_health_check >/dev/null 2>&1; do sleep 2; done &&
-        rabbitmqctl stop_app &&
-        rabbitmqctl reset &&
-        rabbitmqctl join_cluster rabbit@rabbit-node-1 &&
-        rabbitmqctl start_app &&
-        rabbitmqctl cluster_status &&
-        tail -f /dev/null
-      "
     networks:
       - rabbitmq-cluster-net
 
