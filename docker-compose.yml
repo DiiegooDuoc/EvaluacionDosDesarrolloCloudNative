@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  rabbit-node-1:
+    image: rabbitmq:3.13-management
+    container_name: rabbit-node-1
+    hostname: rabbit-node-1
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "DUOC_CLOUD_NATIVE_SECRET_COOKIE_2026"
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_NODENAME: "rabbit@rabbit-node-1"
+    networks:
+      - rabbitmq-cluster-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 8s
+      timeout: 5s
+      retries: 12
+
+  rabbit-node-2:
+    image: rabbitmq:3.13-management
+    container_name: rabbit-node-2
+    hostname: rabbit-node-2
+    depends_on:
+      rabbit-node-1:
+        condition: service_healthy
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "DUOC_CLOUD_NATIVE_SECRET_COOKIE_2026"
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_NODENAME: "rabbit@rabbit-node-2"
+    command: >
+      bash -c "
+        /usr/local/bin/docker-entrypoint.sh rabbitmq-server -detached &&
+        until rabbitmqctl node_health_check >/dev/null 2>&1; do sleep 2; done &&
+        until rabbitmqctl -n rabbit@rabbit-node-1 node_health_check >/dev/null 2>&1; do sleep 2; done &&
+        rabbitmqctl stop_app &&
+        rabbitmqctl reset &&
+        rabbitmqctl join_cluster rabbit@rabbit-node-1 &&
+        rabbitmqctl start_app &&
+        rabbitmqctl cluster_status &&
+        tail -f /dev/null
+      "
+    networks:
+      - rabbitmq-cluster-net
+
+networks:
+  rabbitmq-cluster-net:
+    driver: bridge

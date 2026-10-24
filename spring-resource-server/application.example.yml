@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  rabbitmq:
+    addresses: localhost:5672,localhost:5673
+    username: guest
+    password: guest
+    listener:
+      simple:
+        acknowledge-mode: manual
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://login.microsoftonline.com/TENANT_ID_AQUI/v2.0
+          audiences:
+            - CLIENT_ID_AQUI
+
+app:
+  security:
+    issuer: https://login.microsoftonline.com/TENANT_ID_AQUI/v2.0
+    audience: api://CLIENT_ID_AQUI
+    allowed-origins: http://localhost:5173,http://localhost:4200
+  rabbitmq:
+    max-retries: 2
+    exchanges:
+      direct: pedidos.direct.exchange
+      topic: pedidos.topic.exchange
+      dead-letter: pedidos.dlx.exchange
+    queues:
+      notificaciones:
+        name: pedidos.notificaciones.queue
+        dlq: pedidos.notificaciones.dlq
+        routing-key: pedidos.notificacion.rk
+        dlq-routing-key: pedidos.notificacion.dlq.rk
+      tickets:
+        name: pedidos.tickets.queue
+        dlq: pedidos.tickets.dlq
+        routing-key: pedidos.ticket.rk
+        dlq-routing-key: pedidos.ticket.dlq.rk
+      documentos:
+        name: pedidos.documentos.queue
+        dlq: pedidos.documentos.dlq
+        routing-key: pedidos.documento.#
+        publish-routing-key-prefix: pedidos.documento.
+        dlq-routing-key: pedidos.documento.dlq.rk

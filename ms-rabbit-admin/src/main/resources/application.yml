@@ -1,0 +1,52 @@
+server:
+  port: ${PORT:8081}
+
+spring:
+  application:
+    name: dsy1107-rabbit-admin-service
+  rabbitmq:
+    addresses: ${RABBITMQ_ADDRESSES:localhost:5672,localhost:5673}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    listener:
+      simple:
+        acknowledge-mode: manual
+        default-requeue-rejected: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER:https://login.microsoftonline.com/2843e3a1-23be-4d9b-859e-287a89fb4bc4/v2.0}
+          audiences:
+            - ${JWT_AUDIENCE_ID:9d3b8afe-2427-4cd5-8dcd-063b178d613c}
+
+# Configuracion centralizada de nombres de Exchanges, Colas, DLQs y Routing Keys
+app:
+  security:
+    issuer: ${JWT_ISSUER:https://login.microsoftonline.com/2843e3a1-23be-4d9b-859e-287a89fb4bc4/v2.0}
+    audience: ${JWT_AUDIENCE:api://9d3b8afe-2427-4cd5-8dcd-063b178d613c}
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173,http://localhost:4200}
+  rabbitmq:
+    max-retries: 2
+    exchanges:
+      direct: pedidos.direct.exchange
+      topic: pedidos.topic.exchange
+      dead-letter: pedidos.dlx.exchange
+    queues:
+      notificaciones:
+        name: pedidos.notificaciones.queue
+        dlq: pedidos.notificaciones.dlq
+        routing-key: pedidos.notificacion.rk
+        dlq-routing-key: pedidos.notificacion.dlq.rk
+      tickets:
+        name: pedidos.tickets.queue
+        dlq: pedidos.tickets.dlq
+        routing-key: pedidos.ticket.rk
+        dlq-routing-key: pedidos.ticket.dlq.rk
+      documentos:
+        name: pedidos.documentos.queue
+        dlq: pedidos.documentos.dlq
+        routing-key: pedidos.documento.#
+        publish-routing-key-prefix: pedidos.documento.
+        dlq-routing-key: pedidos.documento.dlq.rk

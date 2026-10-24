@@ -1,0 +1,19 @@
+# Compilados Java / Maven
+**/target/
+**/*.log
+**/.mvn/
+**/mvnw
+**/mvnw.cmd
+
+# Dependencias Node / Frontend
+**/node_modules/
+**/dist/
+**/.env.local
+**/.env.*.local
+
+# IDEs y Sistema Operativo
+**/.idea/
+**/.vscode/
+**/*.iml
+**/.DS_Store
+**/Thumbs.db
